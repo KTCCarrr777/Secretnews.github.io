@@ -1,0 +1,1801 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APEX Global News Hub | 頂尖全球新聞門戶</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,500;0,600;1,400&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                            accent: '#e11d48'
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['Lora', 'Noto Serif TC', 'Georgia', 'serif'],
+                        sans: ['Inter', 'Noto Sans TC', 'Noto Sans SC', 'sans-serif'],
+                        heading: ['Cinzel', 'Noto Sans TC', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.4); border-radius: 3px; }
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .animate-marquee {
+            display: inline-block;
+            white-space: nowrap;
+            animation: marquee 30s linear infinite;
+        }
+        .animate-marquee:hover {
+            animation-play-state: paused;
+        }
+    </style>
+</head>
+<body class="bg-stone-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-sans transition-colors duration-200 min-h-screen flex flex-col">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm pointer-events-none"></div>
+
+    <!-- Header / Navbar -->
+    <header class="border-b border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md sticky top-0 z-40">
+        <!-- Top Bar with Date, Language Switcher & Dark Mode -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-zinc-100 dark:border-zinc-800/60 py-2 text-xs text-zinc-500 dark:text-zinc-400 flex flex-wrap justify-between items-center gap-2">
+            <div class="flex items-center space-x-4">
+                <span id="current-date-display" class="font-medium"><i class="far fa-calendar-alt mr-1"></i> --</span>
+                <span class="hidden sm:inline border-l border-zinc-300 dark:border-zinc-700 pl-4">
+                    <i class="fas fa-globe mr-1 text-brand-500"></i> <span data-i18n="edition_tag">Global Edition</span>
+                </span>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <!-- Multi-Language Switcher -->
+                <div class="relative flex items-center bg-zinc-100 dark:bg-zinc-800 rounded-lg p-0.5 border border-zinc-200 dark:border-zinc-700">
+                    <i class="fas fa-language ml-2 text-zinc-400 text-sm"></i>
+                    <select id="lang-select" onchange="changeLanguage(this.value)" class="bg-transparent text-xs font-medium pl-1 pr-3 py-1 focus:outline-none cursor-pointer text-zinc-800 dark:text-zinc-200">
+                        <option value="zh-TW">繁體中文</option>
+                        <option value="zh-CN">简体中文</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
+
+                <!-- Theme Toggle -->
+                <button id="theme-toggle-btn" class="hover:text-brand-500 transition-colors p-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300" title="Toggle Theme">
+                    <i class="fas fa-moon dark:hidden"></i>
+                    <i class="fas fa-sun hidden dark:inline text-amber-400"></i>
+                </button>
+
+                <div class="h-4 w-px bg-zinc-300 dark:bg-zinc-700"></div>
+
+                <!-- Admin Button -->
+                <button id="nav-admin-btn" onclick="openAdminModalOrDashboard()" class="font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-800 dark:hover:text-brand-300 flex items-center gap-1.5 transition text-xs px-2.5 py-1 bg-brand-50 dark:bg-brand-900/30 rounded-lg">
+                    <i class="fas fa-user-shield"></i>
+                    <span id="nav-admin-btn-text" data-i18n="admin_login">Admin Login</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Brand Logo Header -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="text-center md:text-left cursor-pointer" onclick="filterCategory('All')">
+                <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-zinc-900 dark:text-white uppercase">
+                    APEX <span class="text-brand-accent">.</span> JOURNAL
+                </h1>
+                <p class="text-xs uppercase tracking-widest text-zinc-500 dark:text-zinc-400 font-medium mt-1" data-i18n="journal_subtitle">Independent Journalism & World Analysis</p>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="relative w-full md:w-80">
+                <input type="text" id="search-input" onkeyup="handleSearch(this.value)" placeholder="Search news..." data-i18n-placeholder="search_placeholder"
+                    class="w-full pl-10 pr-4 py-2.5 text-sm bg-zinc-100 dark:bg-zinc-800/80 border border-transparent focus:border-brand-500 dark:focus:border-brand-500 rounded-full focus:outline-none focus:bg-white dark:focus:bg-zinc-900 transition-all text-zinc-800 dark:text-zinc-200">
+                <i class="fas fa-search absolute left-3.5 top-3 text-zinc-400 text-sm"></i>
+            </div>
+        </div>
+
+        <!-- Breaking News Ticker -->
+        <div class="bg-zinc-900 text-white text-xs py-2 px-4 flex items-center overflow-hidden border-t border-b border-zinc-800">
+            <span class="bg-brand-accent text-white font-bold px-2.5 py-0.5 rounded text-[10px] uppercase tracking-wider whitespace-nowrap mr-3 flex items-center gap-1">
+                <i class="fas fa-bolt animate-pulse"></i> <span data-i18n="breaking_news">BREAKING</span>
+            </span>
+            <div class="overflow-hidden relative w-full">
+                <div id="breaking-ticker-text" class="animate-marquee hover:pause font-medium">
+                    <!-- Dynamic Ticker Items Injected -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Navigation Bar -->
+        <nav class="bg-white dark:bg-zinc-900 border-t border-zinc-100 dark:border-zinc-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between overflow-x-auto custom-scrollbar">
+                <ul class="flex space-x-1 sm:space-x-4 py-2 text-sm font-semibold whitespace-nowrap" id="category-nav-list">
+                    <!-- Dynamic Categories Injected -->
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Public Content View -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full" id="public-portal">
+        
+        <!-- Active Filter Bar -->
+        <div id="filter-status-bar" class="hidden mb-6 flex justify-between items-center bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800/50 p-3 rounded-xl text-sm">
+            <span><span data-i18n="filtering_for">Showing results for:</span> <strong id="filter-label" class="text-brand-600 dark:text-brand-400"></strong></span>
+            <button onclick="clearFilter()" class="text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-white underline font-medium" data-i18n="clear_filter">Clear Filter</button>
+        </div>
+
+        <!-- Featured / Hero Article Section -->
+        <section id="hero-section" class="mb-10">
+            <!-- Dynamic Hero injected -->
+        </section>
+
+        <!-- Main Layout (News Stream + Trending Sidebar) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+            
+            <!-- Left Grid Stream (8 Cols) -->
+            <section class="lg:col-span-8">
+                <div class="flex items-center justify-between border-b-2 border-zinc-900 dark:border-zinc-100 pb-2 mb-6">
+                    <h2 class="font-heading text-xl font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                        <i class="fas fa-newspaper text-brand-500 text-lg"></i>
+                        <span data-i18n="latest_dispatches">Latest Dispatches</span>
+                    </h2>
+                    <span id="article-count-badge" class="text-xs font-semibold px-2.5 py-1 bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-full">0</span>
+                </div>
+
+                <div id="news-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <!-- Dynamic Grid Articles Injected -->
+                </div>
+
+                <!-- Empty State -->
+                <div id="no-articles-view" class="hidden text-center py-16 border border-dashed border-zinc-300 dark:border-zinc-800 rounded-2xl">
+                    <i class="fas fa-folder-open text-5xl text-zinc-300 dark:text-zinc-700 mb-3"></i>
+                    <p class="text-zinc-500 dark:text-zinc-400 font-medium" data-i18n="no_articles_found">No articles found matching your criteria.</p>
+                </div>
+            </section>
+
+            <!-- Right Sidebar (4 Cols) -->
+            <aside class="lg:col-span-4 space-y-8">
+                
+                <!-- Trending / Top Viewed -->
+                <div class="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+                    <h3 class="font-heading font-bold text-lg border-b border-zinc-100 dark:border-zinc-800 pb-3 mb-4 flex items-center gap-2">
+                        <i class="fas fa-fire text-brand-accent"></i> <span data-i18n="trending_stories">Trending Stories</span>
+                    </h3>
+                    <div id="trending-list" class="space-y-4">
+                        <!-- Dynamic Trending injected -->
+                    </div>
+                </div>
+
+                <!-- Open Public Newsletter Signup Widget -->
+                <div class="bg-gradient-to-br from-zinc-900 to-zinc-800 text-white p-6 rounded-2xl shadow-lg relative overflow-hidden">
+                    <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-brand-500/20 rounded-full blur-2xl"></div>
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-brand-400 mb-1 block" data-i18n="newsletter_tag">NEWSLETTER</span>
+                    <h4 class="font-heading text-xl font-bold mb-2" data-i18n="newsletter_title">Global Digest</h4>
+                    <p class="text-xs text-zinc-300 mb-4 leading-relaxed" data-i18n="newsletter_desc">Get concise geopolitical and financial insights delivered directly to your inbox.</p>
+                    <form onsubmit="handleNewsletterSubmit(event)" class="space-y-2">
+                        <input type="email" id="sidebar-newsletter-email" required placeholder="name@domain.com" class="w-full px-3.5 py-2 text-sm bg-zinc-800 border border-zinc-700 rounded-xl focus:outline-none focus:border-brand-500 text-white placeholder-zinc-500">
+                        <button type="submit" class="w-full bg-brand-accent hover:bg-rose-700 text-white font-semibold text-xs py-2.5 rounded-xl transition duration-200 uppercase tracking-wider" data-i18n="subscribe_btn">Subscribe Free</button>
+                    </form>
+                </div>
+
+                <!-- Admin Quick Info Box -->
+                <div class="border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 bg-stone-100/60 dark:bg-zinc-900/40 text-xs space-y-2">
+                    <div class="font-semibold text-zinc-700 dark:text-zinc-300 flex items-center justify-between">
+                        <span><i class="fas fa-key text-brand-500 mr-1"></i> <span data-i18n="admin_access_info">Editorial Portal Info</span></span>
+                        <span class="px-2 py-0.5 bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded text-[10px]">Demo</span>
+                    </div>
+                    <p class="text-zinc-500 dark:text-zinc-400" data-i18n="admin_hint">Login as administrator to create, edit, translate, or delete articles.</p>
+                    <p class="text-zinc-400 dark:text-zinc-500 font-mono text-[10px]">Account: admin / Pass: admin123</p>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <!-- Admin Dashboard Panel -->
+    <main id="admin-dashboard" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+        <!-- Dashboard Top Navigation -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-zinc-200 dark:border-zinc-800 pb-5 mb-8 gap-4">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400" data-i18n="authenticated">Authenticated</span>
+                    <h1 class="text-2xl sm:text-3xl font-heading font-bold" data-i18n="admin_dashboard_title">Editorial Control Center</h1>
+                </div>
+                <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1" data-i18n="admin_dashboard_desc">Manage articles across multi-language databases and track readership metrics.</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="openArticleFormModal()" class="bg-brand-600 hover:bg-brand-700 text-white font-medium text-xs sm:text-sm px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow-sm">
+                    <i class="fas fa-plus"></i> <span data-i18n="btn_new_article">Create Article</span>
+                </button>
+                <button onclick="switchToReaderMode()" class="bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 font-medium text-xs sm:text-sm px-4 py-2.5 rounded-xl transition flex items-center gap-2">
+                    <i class="fas fa-eye"></i> <span data-i18n="btn_view_site">Public View</span>
+                </button>
+                <button onclick="logoutAdmin()" class="bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 text-sm font-medium px-3.5 py-2.5 rounded-xl transition" title="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Analytics Overview Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+            <div class="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider" data-i18n="stat_total_articles">Total Articles</p>
+                    <h3 id="stat-total" class="text-3xl font-extrabold mt-1">0</h3>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 flex items-center justify-center text-xl">
+                    <i class="fas fa-newspaper"></i>
+                </div>
+            </div>
+            <div class="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider" data-i18n="stat_published">Published</p>
+                    <h3 id="stat-published" class="text-3xl font-extrabold mt-1 text-emerald-600 dark:text-emerald-400">0</h3>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+            </div>
+            <div class="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider" data-i18n="stat_drafts">Drafts</p>
+                    <h3 id="stat-drafts" class="text-3xl font-extrabold mt-1 text-amber-600 dark:text-amber-400">0</h3>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl">
+                    <i class="fas fa-file-pen"></i>
+                </div>
+            </div>
+            <div class="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider" data-i18n="stat_views">Total Views</p>
+                    <h3 id="stat-views" class="text-3xl font-extrabold mt-1 text-purple-600 dark:text-purple-400">0</h3>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventory Management Table -->
+        <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden mb-8">
+            <div class="p-5 border-b border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <h2 class="font-heading font-bold text-lg" data-i18n="article_inventory">Article Database</h2>
+                <button onclick="resetDataToDemo()" class="text-xs text-rose-600 dark:text-rose-400 hover:underline border border-rose-200 dark:border-rose-900/50 px-3 py-1.5 rounded-lg bg-rose-50/50 dark:bg-rose-950/30">
+                    <i class="fas fa-rotate-left mr-1"></i> <span data-i18n="reset_demo_data">Reset Sample Articles</span>
+                </button>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-zinc-50 dark:bg-zinc-800/50 text-zinc-500 dark:text-zinc-400 text-xs font-semibold uppercase tracking-wider">
+                        <tr>
+                            <th class="px-6 py-3.5" data-i18n="tbl_title">Title</th>
+                            <th class="px-6 py-3.5" data-i18n="tbl_category">Category</th>
+                            <th class="px-6 py-3.5" data-i18n="tbl_author">Author</th>
+                            <th class="px-6 py-3.5" data-i18n="tbl_status">Status</th>
+                            <th class="px-6 py-3.5" data-i18n="tbl_date">Date</th>
+                            <th class="px-6 py-3.5 text-right" data-i18n="tbl_actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-table-body" class="divide-y divide-zinc-200 dark:divide-zinc-800 font-medium">
+                        <!-- Articles injected by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Comment Moderation Table for Admins -->
+        <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+            <div class="p-5 border-b border-zinc-200 dark:border-zinc-800">
+                <h2 class="font-heading font-bold text-lg flex items-center gap-2">
+                    <i class="fas fa-comments text-brand-500"></i> <span data-i18n="admin_comments_title">Reader Comments Moderation</span>
+                </h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-zinc-50 dark:bg-zinc-800/50 text-zinc-500 dark:text-zinc-400 text-xs font-semibold uppercase tracking-wider">
+                        <tr>
+                            <th class="px-6 py-3.5" data-i18n="tbl_comment_user">User</th>
+                            <th class="px-6 py-3.5" data-i18n="tbl_comment_text">Comment</th>
+                            <th class="px-6 py-3.5" data-i18n="tbl_article">Article</th>
+                            <th class="px-6 py-3.5" data-i18n="tbl_flags">Flags</th>
+                            <th class="px-6 py-3.5 text-right" data-i18n="tbl_actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-comments-body" class="divide-y divide-zinc-200 dark:divide-zinc-800 font-medium text-xs">
+                        <!-- Admin Comments Injected -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL 1: Admin Login -->
+    <div id="login-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-zinc-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-zinc-200 dark:border-zinc-800">
+            <div class="flex justify-between items-center pb-4 border-b border-zinc-100 dark:border-zinc-800">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 flex items-center justify-center">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <h3 class="font-heading font-bold text-lg" data-i18n="login_title">Editorial Authentication</h3>
+                </div>
+                <button onclick="closeModal('login-modal')" class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form onsubmit="handleAdminLogin(event)" class="mt-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 mb-1" data-i18n="login_user">Username</label>
+                    <input type="text" id="login-username" required value="admin" class="w-full px-3.5 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl focus:outline-none focus:border-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 mb-1" data-i18n="login_pass">Password</label>
+                    <input type="password" id="login-password" required value="admin123" class="w-full px-3.5 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl focus:outline-none focus:border-brand-500">
+                    <p class="text-[11px] text-zinc-400 mt-1" data-i18n="login_hint">Default credentials: admin / admin123</p>
+                </div>
+                <div class="pt-2">
+                    <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm py-2.5 rounded-xl shadow duration-200" data-i18n="login_btn">
+                        Authenticate
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Full Interactive Reader with Focus Mode & Font Control -->
+    <div id="reader-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 hidden flex justify-center p-2 sm:p-4 overflow-y-auto">
+        <div id="reader-modal-card" class="bg-white dark:bg-zinc-900 rounded-2xl max-w-3xl w-full my-auto shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col max-h-[92vh] transition-all duration-300">
+            <!-- Reader Control Header -->
+            <div class="p-4 border-b border-zinc-200 dark:border-zinc-800 flex flex-wrap justify-between items-center gap-3 bg-zinc-50/80 dark:bg-zinc-800/80">
+                <div class="flex items-center gap-2">
+                    <span id="reader-category" class="text-xs font-bold uppercase tracking-widest text-brand-600 dark:text-brand-400 px-2.5 py-1 bg-brand-50 dark:bg-brand-900/30 rounded-md">Category</span>
+                    
+                    <!-- Article Upvote / Like Button -->
+                    <button id="reader-like-btn" onclick="toggleArticleLike()" class="text-xs px-2.5 py-1 rounded-md border border-rose-200 dark:border-rose-900/50 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 transition flex items-center gap-1 font-semibold">
+                        <i class="far fa-heart" id="reader-like-icon"></i>
+                        <span id="reader-like-count">0</span>
+                    </button>
+                </div>
+
+                <!-- Font Resizer & Focus Mode & Sharing Actions -->
+                <div class="flex items-center gap-2 text-xs">
+                    <!-- Font Control -->
+                    <div class="flex items-center border border-zinc-300 dark:border-zinc-700 rounded-lg overflow-hidden bg-white dark:bg-zinc-800">
+                        <button onclick="adjustFontSize(-1)" class="px-2 py-1 hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300" title="Decrease Font">A-</button>
+                        <button onclick="adjustFontSize(0)" class="px-2 py-1 hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-500 border-x border-zinc-200 dark:border-zinc-700 text-[10px]" title="Reset Font">Reset</button>
+                        <button onclick="adjustFontSize(1)" class="px-2 py-1 hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold" title="Increase Font">A+</button>
+                    </div>
+
+                    <!-- Focus Mode Toggle -->
+                    <button id="focus-mode-btn" onclick="toggleFocusMode()" class="px-2.5 py-1 rounded-lg border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition flex items-center gap-1" title="Focus Mode">
+                        <i class="fas fa-expand-alt"></i>
+                        <span data-i18n="focus_mode">Focus</span>
+                    </button>
+
+                    <!-- Share Trigger -->
+                    <button onclick="toggleShareDropdown()" class="px-2.5 py-1 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-medium transition flex items-center gap-1">
+                        <i class="fas fa-share-alt"></i>
+                        <span data-i18n="share_btn">Share</span>
+                    </button>
+
+                    <button onclick="closeModal('reader-modal')" class="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 text-lg p-1">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Share Dropdown Drawer -->
+            <div id="share-dropdown" class="hidden bg-zinc-100 dark:bg-zinc-800 p-3 border-b border-zinc-200 dark:border-zinc-700 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <span class="font-semibold text-zinc-600 dark:text-zinc-400" data-i18n="share_to">Share story to:</span>
+                <div class="flex items-center gap-2">
+                    <button onclick="shareSocial('twitter')" class="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center hover:opacity-80" title="X / Twitter"><i class="fab fa-x-twitter"></i></button>
+                    <button onclick="shareSocial('facebook')" class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center hover:opacity-80" title="Facebook"><i class="fab fa-facebook-f"></i></button>
+                    <button onclick="shareSocial('whatsapp')" class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center hover:opacity-80" title="WhatsApp"><i class="fab fa-whatsapp"></i></button>
+                    <button onclick="shareSocial('telegram')" class="w-8 h-8 rounded-full bg-sky-500 text-white flex items-center justify-center hover:opacity-80" title="Telegram"><i class="fab fa-telegram-plane"></i></button>
+                    <button onclick="shareSocial('line')" class="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center hover:opacity-80" title="Line"><i class="fab fa-line"></i></button>
+                    <button onclick="openQRCodeModal()" class="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center hover:opacity-80" title="QR Code"><i class="fas fa-qrcode"></i></button>
+                    <button onclick="copyArticleLink()" class="px-3 py-1.5 bg-zinc-200 dark:bg-zinc-700 rounded-lg hover:bg-zinc-300 font-medium" title="Copy Link"><i class="fas fa-link mr-1"></i> Copy</button>
+                </div>
+            </div>
+
+            <!-- Reader Body -->
+            <div class="p-6 sm:p-8 overflow-y-auto custom-scrollbar space-y-6">
+                <div>
+                    <h1 id="reader-title" class="font-heading text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight text-zinc-900 dark:text-white mb-3"></h1>
+                    <p id="reader-subtitle" class="text-base sm:text-lg text-zinc-600 dark:text-zinc-300 font-serif italic mb-4"></p>
+                    
+                    <div class="flex flex-wrap items-center gap-4 text-xs text-zinc-500 dark:text-zinc-400 border-y border-zinc-100 dark:border-zinc-800 py-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900/50 text-brand-700 dark:text-brand-300 flex items-center justify-center font-bold" id="reader-author-avatar">A</div>
+                            <div>
+                                <p id="reader-author" class="font-semibold text-zinc-800 dark:text-zinc-200"></p>
+                                <p id="reader-date"></p>
+                            </div>
+                        </div>
+                        <div class="ml-auto flex items-center gap-3 text-xs bg-zinc-100 dark:bg-zinc-800/80 px-3 py-1.5 rounded-full">
+                            <span><i class="far fa-clock mr-1"></i><span id="reader-readtime">3 min read</span></span>
+                            <span><i class="far fa-eye mr-1"></i><span id="reader-views">0</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rounded-2xl overflow-hidden shadow-md max-h-96" id="reader-image-wrapper">
+                    <img id="reader-image" src="" alt="Cover" class="w-full h-full object-cover">
+                </div>
+
+                <!-- Text Paragraphs -->
+                <div id="reader-content" class="prose dark:prose-invert font-serif text-base leading-relaxed text-zinc-800 dark:text-zinc-200 space-y-4 transition-all duration-200"></div>
+
+                <div class="pt-4 border-t border-zinc-100 dark:border-zinc-800 flex flex-wrap gap-2" id="reader-tags"></div>
+
+                <!-- Newsletter Embed in Article -->
+                <div class="my-8 p-6 bg-stone-100 dark:bg-zinc-800/60 rounded-2xl border border-zinc-200 dark:border-zinc-700 text-center space-y-3">
+                    <h4 class="font-heading font-bold text-base" data-i18n="newsletter_title">Stay Ahead with APEX Journal</h4>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400 max-w-md mx-auto" data-i18n="newsletter_desc">Get concise geopolitical and financial insights delivered directly to your inbox.</p>
+                    <form onsubmit="handleNewsletterSubmit(event)" class="flex max-w-md mx-auto gap-2">
+                        <input type="email" required placeholder="name@domain.com" class="flex-grow px-3.5 py-2 text-xs bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-xl focus:outline-none focus:border-brand-500">
+                        <button type="submit" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs rounded-xl whitespace-nowrap" data-i18n="subscribe_btn">Subscribe Free</button>
+                    </form>
+                </div>
+
+                <!-- Enhanced Comments Section -->
+                <section class="pt-8 border-t border-zinc-200 dark:border-zinc-800">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-heading font-bold text-lg flex items-center gap-2">
+                            <i class="far fa-comments text-brand-500"></i> <span data-i18n="comments_heading">Reader Discussions</span> (<span id="comments-count">0</span>)
+                        </h3>
+                        <button onclick="toggleCommentsVisibility()" class="text-xs text-zinc-500 hover:text-brand-600 dark:hover:text-brand-400 font-medium" id="toggle-comments-btn">
+                            <i class="fas fa-chevron-up mr-1"></i> <span data-i18n="collapse_comments">Collapse Comments</span>
+                        </button>
+                    </div>
+                    
+                    <div id="comments-wrapper">
+                        <form onsubmit="postComment(event)" class="mb-6 space-y-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <input type="text" id="comment-author" required placeholder="Your Name" data-i18n-placeholder="comment_name_ph" class="px-3.5 py-2 text-xs bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl focus:outline-none focus:border-brand-500">
+                            </div>
+                            <textarea id="comment-text" required rows="2" placeholder="Share your perspective on this article..." data-i18n-placeholder="comment_text_ph" class="w-full px-3.5 py-2 text-xs bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl focus:outline-none focus:border-brand-500"></textarea>
+                            <button type="submit" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-xl transition" data-i18n="post_comment_btn">Submit Comment</button>
+                        </form>
+
+                        <div id="comments-list" class="space-y-3 text-xs">
+                            <!-- Dynamic Comments -->
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: QR Code Generator Modal -->
+    <div id="qrcode-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-zinc-900 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-zinc-200 dark:border-zinc-800 text-center space-y-4">
+            <div class="flex justify-between items-center pb-2 border-b border-zinc-100 dark:border-zinc-800">
+                <h3 class="font-heading font-bold text-base" data-i18n="qrcode_modal_title">Scan to Read on Mobile</h3>
+                <button onclick="closeModal('qrcode-modal')" class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="p-4 bg-white rounded-xl shadow-inner inline-block border border-zinc-200">
+                <!-- SVG Vector QR Code Graphic -->
+                <svg class="w-48 h-48 mx-auto" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="100" height="100" fill="white"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M10 10H40V40H10V10ZM15 15V35H35V15H15Z" fill="#18181B"/>
+                    <rect x="20" y="20" width="10" height="10" fill="#18181B"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M60 10H90V40H60V10ZM65 15V35H85V15H65Z" fill="#18181B"/>
+                    <rect x="70" y="20" width="10" height="10" fill="#18181B"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M10 60H40V90H10V60ZM15 65V85H35V65H15Z" fill="#18181B"/>
+                    <rect x="20" y="70" width="10" height="10" fill="#18181B"/>
+                    <rect x="50" y="50" width="10" height="10" fill="#18181B"/>
+                    <rect x="70" y="50" width="20" height="10" fill="#18181B"/>
+                    <rect x="50" y="70" width="10" height="20" fill="#18181B"/>
+                    <rect x="70" y="70" width="10" height="10" fill="#18181B"/>
+                    <rect x="80" y="80" width="10" height="10" fill="#18181B"/>
+                    <rect x="60" y="80" width="10" height="10" fill="#18181B"/>
+                </svg>
+            </div>
+            <p class="text-xs text-zinc-500 dark:text-zinc-400" data-i18n="qrcode_desc">Point your smartphone camera at the screen to instantly open this article on your mobile device.</p>
+        </div>
+    </div>
+
+    <!-- MODAL 4: Create / Edit Article -->
+    <div id="editor-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex justify-center p-2 sm:p-4 overflow-y-auto">
+        <div class="bg-white dark:bg-zinc-900 rounded-2xl max-w-2xl w-full my-auto p-6 shadow-2xl border border-zinc-200 dark:border-zinc-800">
+            <div class="flex justify-between items-center pb-4 border-b border-zinc-200 dark:border-zinc-800 mb-4">
+                <h3 id="editor-modal-title" class="font-heading font-bold text-xl" data-i18n="editor_title_create">Create New Article</h3>
+                <button onclick="closeModal('editor-modal')" class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="article-form" onsubmit="saveArticle(event)" class="space-y-4 text-xs sm:text-sm">
+                <input type="hidden" id="edit-article-id">
+
+                <div>
+                    <label class="block font-semibold mb-1" data-i18n="form_headline">Headline Title *</label>
+                    <input type="text" id="form-title" required placeholder="e.g. Breakthrough in Quantum Energy" class="w-full px-3.5 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl focus:outline-none focus:border-brand-500">
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1" data-i18n="form_subtitle">Subtitle / Summary</label>
+                    <input type="text" id="form-subtitle" placeholder="Brief lead summary..." class="w-full px-3.5 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl focus:outline-none focus:border-brand-500">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-semibold mb-1" data-i18n="form_category">Category *</label>
+                        <select id="form-category" required class="w-full px-3.5 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl focus:outline-none focus:border-brand-500">
+                            <option value="Politics">Politics</option>
+                            <option value="Technology">Technology</option>
+                            <option value="World">World</option>
+                            <option value="Business">Business</option>
+                            <option value="Culture">Culture</option>
+                            <option value="Opinion">Opinion</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1" data-i18n="form_author">Author *</label>
+                        <input type="text" id="form-author" required placeholder="e.g. Sarah Jenkins" class="w-full px-3.5 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl focus:outline-none focus:border-brand-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1" data-i18n="form_image_url">Cover Image URL</label>
+                    <div class="flex gap-2">
+                        <input type="url" id="form-image" placeholder="https://images.unsplash.com/..." class="w-full px-3.5 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl focus:outline-none focus:border-brand-500">
+                        <button type="button" onclick="presetSampleImage()" class="px-3 py-2 bg-zinc-200 dark:bg-zinc-700 text-xs rounded-xl hover:bg-zinc-300 dark:hover:bg-zinc-600 whitespace-nowrap" data-i18n="btn_random_img">Random Image</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1" data-i18n="form_content">Content *</label>
+                    <textarea id="form-content" rows="6" required placeholder="Write full article content here..." class="w-full px-3.5 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl focus:outline-none focus:border-brand-500 font-serif"></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block font-semibold mb-1" data-i18n="form_tags">Tags (comma separated)</label>
+                        <input type="text" id="form-tags" placeholder="e.g. Tech, AI, Breaking" class="w-full px-3.5 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl focus:outline-none focus:border-brand-500">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1" data-i18n="form_status">Status</label>
+                        <select id="form-status" class="w-full px-3.5 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl focus:outline-none focus:border-brand-500">
+                            <option value="Published">Published</option>
+                            <option value="Draft">Draft</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1" data-i18n="form_pin">Pin to Lead Hero</label>
+                        <select id="form-featured" class="w-full px-3.5 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl focus:outline-none focus:border-brand-500">
+                            <option value="false">No</option>
+                            <option value="true">Yes (Hero Pin)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="pt-4 flex justify-end gap-3 border-t border-zinc-200 dark:border-zinc-800">
+                    <button type="button" onclick="closeModal('editor-modal')" class="px-4 py-2 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800" data-i18n="btn_cancel">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl shadow" data-i18n="btn_save">
+                        Save Article
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Engine -->
+    <script>
+        // --- TRANSLATION DICTIONARY (i18n) ---
+        const I18N = {
+            'zh-TW': {
+                edition_tag: '全球繁體中文版',
+                journal_subtitle: '獨立新聞報導與深度全球分析',
+                search_placeholder: '搜尋新聞、議題、作者...',
+                breaking_news: '即時快訊',
+                admin_login: '管理員登入',
+                latest_dispatches: '最新新聞動態',
+                trending_stories: '發燒熱門頭條',
+                newsletter_tag: '新聞電子報',
+                newsletter_title: '全球即時快訊焦點',
+                newsletter_desc: '訂閱我們的免費新聞信，每天早晨直接於信箱接收全球關鍵分析。',
+                subscribe_btn: '免費訂閱',
+                admin_access_info: '編輯後台資訊',
+                admin_hint: '登入管理員後台即可新增、修改、刪除新聞或進行評論審核。',
+                no_articles_found: '沒有找到符合條件的新聞文章。',
+                filtering_for: '目前篩選條件：',
+                clear_filter: '清除篩選',
+                authenticated: '已驗證身份',
+                admin_dashboard_title: '新聞編輯控制中心',
+                admin_dashboard_desc: '管理多語言新聞資料庫並追蹤讀者瀏覽與互動數據。',
+                btn_new_article: '撰寫新文章',
+                btn_view_site: '返回前台',
+                stat_total_articles: '總文章數',
+                stat_published: '已發布',
+                stat_drafts: '草稿箱',
+                stat_views: '總瀏覽量',
+                article_inventory: '文章管理清單',
+                reset_demo_data: '重置範例文章',
+                tbl_title: '文章標題',
+                tbl_category: '分類',
+                tbl_author: '作者',
+                tbl_status: '狀態',
+                tbl_date: '日期',
+                tbl_actions: '操作',
+                login_title: '管理員安全驗證',
+                login_user: '使用者名稱',
+                login_pass: '密碼',
+                login_hint: '預設預填帳號：admin / 密碼：admin123',
+                login_btn: '登入驗證',
+                share_btn: '分享文章',
+                share_to: '分享至：',
+                focus_mode: '專注閱讀',
+                normal_mode: '退出專注',
+                comments_heading: '讀者迴響與討論',
+                collapse_comments: '隱藏評論',
+                expand_comments: '展開評論',
+                comment_name_ph: '您的稱呼',
+                comment_text_ph: '分享您對此新聞的看法...',
+                post_comment_btn: '送出留言',
+                upvote_comment: '點讚',
+                report_comment: '檢舉',
+                editor_title_create: '新增新聞文章',
+                editor_title_edit: '編輯新聞文章',
+                form_headline: '新聞標題 *',
+                form_subtitle: '副標題 / 摘要',
+                form_category: '新聞分類 *',
+                form_author: '作者 *',
+                form_image_url: '封面圖片連結',
+                btn_random_img: '隨機圖片',
+                form_content: '新聞內文 *',
+                form_tags: '標籤 (以逗號分隔)',
+                form_status: '發布狀態',
+                form_pin: '置頂至頭條 Hero',
+                btn_cancel: '取消',
+                btn_save: '儲存文章',
+                subscribed_success: '成功訂閱電子報！',
+                comment_success: '留言發布成功！',
+                link_copied: '文章連結已複製至剪貼簿！',
+                comment_reported: '感謝回報，該評論已送交管理員審核。',
+                admin_comments_title: '讀者評論審核管理',
+                tbl_comment_user: '留言者',
+                tbl_comment_text: '評論內容',
+                tbl_article: '對應文章',
+                tbl_flags: '檢舉數',
+                qrcode_modal_title: '手機掃描閱讀',
+                qrcode_desc: '將手機鏡頭對準螢幕，即可於行動裝置即時閱讀此新聞。'
+            },
+            'zh-CN': {
+                edition_tag: '全球简体中文版',
+                journal_subtitle: '独立新闻报道与深度全球分析',
+                search_placeholder: '搜索新闻、议题、作者...',
+                breaking_news: '即时快讯',
+                admin_login: '管理员登录',
+                latest_dispatches: '最新新闻动态',
+                trending_stories: '发烧热门头条',
+                newsletter_tag: '新闻电子报',
+                newsletter_title: '全球即时快讯焦点',
+                newsletter_desc: '订阅我们的免费新闻信，每天早晨直接在邮箱接收全球关键分析。',
+                subscribe_btn: '免费订阅',
+                admin_access_info: '编辑后台信息',
+                admin_hint: '登录管理员后台即可新增、修改、删除新闻或进行评论审核。',
+                no_articles_found: '没有找到符合条件的新闻文章。',
+                filtering_for: '当前筛选条件：',
+                clear_filter: '清除筛选',
+                authenticated: '已验证身份',
+                admin_dashboard_title: '新闻编辑控制中心',
+                admin_dashboard_desc: '管理多语言新闻数据库并追踪读者浏览与互动数据。',
+                btn_new_article: '撰写新文章',
+                btn_view_site: '返回前台',
+                stat_total_articles: '总文章数',
+                stat_published: '已发布',
+                stat_drafts: '草稿箱',
+                stat_views: '总浏览量',
+                article_inventory: '文章管理清单',
+                reset_demo_data: '重置示例文章',
+                tbl_title: '文章标题',
+                tbl_category: '分类',
+                tbl_author: '作者',
+                tbl_status: '状态',
+                tbl_date: '日期',
+                tbl_actions: '操作',
+                login_title: '管理员安全验证',
+                login_user: '用户名',
+                login_pass: '密码',
+                login_hint: '默认预填账号：admin / 密码：admin123',
+                login_btn: '登录验证',
+                share_btn: '分享文章',
+                share_to: '分享至：',
+                focus_mode: '专注阅读',
+                normal_mode: '退出专注',
+                comments_heading: '读者反响与讨论',
+                collapse_comments: '隐藏评论',
+                expand_comments: '展开评论',
+                comment_name_ph: '您的称呼',
+                comment_text_ph: '分享您对此新闻的看法...',
+                post_comment_btn: '提交留言',
+                upvote_comment: '点赞',
+                report_comment: '举报',
+                editor_title_create: '新增新闻文章',
+                editor_title_edit: '编辑新闻文章',
+                form_headline: '新闻标题 *',
+                form_subtitle: '副标题 / 摘要',
+                form_category: '新闻分类 *',
+                form_author: '作者 *',
+                form_image_url: '封面图片链接',
+                btn_random_img: '随机图片',
+                form_content: '新闻正文 *',
+                form_tags: '标签 (以逗号分隔)',
+                form_status: '发布状态',
+                form_pin: '置顶至头条 Hero',
+                btn_cancel: '取消',
+                btn_save: '保存文章',
+                subscribed_success: '成功订阅电子报！',
+                comment_success: '留言发布成功！',
+                link_copied: '文章链接已复制至剪贴板！',
+                comment_reported: '感谢举报，该评论已提交管理员审核。',
+                admin_comments_title: '读者评论审核管理',
+                tbl_comment_user: '留言者',
+                tbl_comment_text: '评论内容',
+                tbl_article: '对应文章',
+                tbl_flags: '举报数',
+                qrcode_modal_title: '手机扫描阅读',
+                qrcode_desc: '将手机镜头对准屏幕，即可在移动设备即时阅读此新闻。'
+            },
+            'en': {
+                edition_tag: 'Global Edition',
+                journal_subtitle: 'Independent Journalism & World Analysis',
+                search_placeholder: 'Search news, topics, authors...',
+                breaking_news: 'BREAKING',
+                admin_login: 'Admin Login',
+                latest_dispatches: 'Latest Dispatches',
+                trending_stories: 'Trending Stories',
+                newsletter_tag: 'NEWSLETTER',
+                newsletter_title: 'Global Digest',
+                newsletter_desc: 'Get concise geopolitical and financial insights delivered directly to your inbox.',
+                subscribe_btn: 'Subscribe Free',
+                admin_access_info: 'Editorial Portal Info',
+                admin_hint: 'Login as administrator to create, edit, translate, delete articles or moderate comments.',
+                no_articles_found: 'No articles found matching your criteria.',
+                filtering_for: 'Showing results for:',
+                clear_filter: 'Clear Filter',
+                authenticated: 'Authenticated',
+                admin_dashboard_title: 'Editorial Control Center',
+                admin_dashboard_desc: 'Manage articles across multi-language databases and track readership metrics.',
+                btn_new_article: 'Create Article',
+                btn_view_site: 'Public View',
+                stat_total_articles: 'Total Articles',
+                stat_published: 'Published',
+                stat_drafts: 'Drafts',
+                stat_views: 'Total Views',
+                article_inventory: 'Article Database',
+                reset_demo_data: 'Reset Sample Articles',
+                tbl_title: 'Title',
+                tbl_category: 'Category',
+                tbl_author: 'Author',
+                tbl_status: 'Status',
+                tbl_date: 'Date',
+                tbl_actions: 'Actions',
+                login_title: 'Editorial Authentication',
+                login_user: 'Username',
+                login_pass: 'Password',
+                login_hint: 'Default credentials: admin / admin123',
+                login_btn: 'Authenticate',
+                share_btn: 'Share',
+                share_to: 'Share to:',
+                focus_mode: 'Focus Mode',
+                normal_mode: 'Exit Focus',
+                comments_heading: 'Reader Discussions',
+                collapse_comments: 'Hide Comments',
+                expand_comments: 'Show Comments',
+                comment_name_ph: 'Your Name',
+                comment_text_ph: 'Share your perspective on this article...',
+                post_comment_btn: 'Submit Comment',
+                upvote_comment: 'Like',
+                report_comment: 'Report',
+                editor_title_create: 'Create New Article',
+                editor_title_edit: 'Edit Article',
+                form_headline: 'Headline Title *',
+                form_subtitle: 'Subtitle / Summary',
+                form_category: 'Category *',
+                form_author: 'Author *',
+                form_image_url: 'Cover Image URL',
+                btn_random_img: 'Random Image',
+                form_content: 'Content *',
+                form_tags: 'Tags (comma separated)',
+                form_status: 'Status',
+                form_pin: 'Pin as Lead Hero',
+                btn_cancel: 'Cancel',
+                btn_save: 'Save Article',
+                subscribed_success: 'Subscribed to newsletter!',
+                comment_success: 'Comment posted successfully!',
+                link_copied: 'Article link copied to clipboard!',
+                comment_reported: 'Thank you. Comment flagged for moderator review.',
+                admin_comments_title: 'Reader Comments Moderation',
+                tbl_comment_user: 'User',
+                tbl_comment_text: 'Comment',
+                tbl_article: 'Article',
+                tbl_flags: 'Flags',
+                qrcode_modal_title: 'Scan to Read on Mobile',
+                qrcode_desc: 'Point your smartphone camera at the screen to instantly open this article on your mobile device.'
+            }
+        };
+
+        // Category Dictionary Mapping
+        const CATEGORY_MAP = {
+            'All': { 'zh-TW': '全部', 'zh-CN': '全部', 'en': 'All' },
+            'Politics': { 'zh-TW': '政治外交', 'zh-CN': '政治外交', 'en': 'Politics' },
+            'Technology': { 'zh-TW': '科技前沿', 'zh-CN': '科技前沿', 'en': 'Technology' },
+            'World': { 'zh-TW': '國際局勢', 'zh-CN': '国际局势', 'en': 'World' },
+            'Business': { 'zh-TW': '財經市場', 'zh-CN': '财经市场', 'en': 'Business' },
+            'Culture': { 'zh-TW': '文化藝術', 'zh-CN': '文化艺术', 'en': 'Culture' },
+            'Opinion': { 'zh-TW': '深度評論', 'zh-CN': '深度评论', 'en': 'Opinion' }
+        };
+
+        // --- SAMPLE MULTI-LANG DATASET ---
+        const INITIAL_ARTICLES = [
+            {
+                id: 'art-101',
+                category: 'Technology',
+                author: 'Dr. Elena Rostova',
+                date: '2026-10-05',
+                image: 'https://images.unsplash.com/photo-1509391365360-2e959784a276?auto=format&fit=crop&w=1000&q=80',
+                status: 'Published',
+                views: 1840,
+                likes: 124,
+                featured: true,
+                title: {
+                    'zh-TW': '清潔能源重大突破：新一代量子太陽能電池光電轉換效率創歷史新高',
+                    'zh-CN': '清洁能源重大突破：新一代量子太阳能电池光电转换效率创历史新高',
+                    'en': 'Breakthrough in Clean Energy: Quantum Solar Cells Set Efficiency Record'
+                },
+                subtitle: {
+                    'zh-TW': '研究團隊利用鈣鈦礦與矽疊層技術，成功將轉化效率提升至 42%。',
+                    'zh-CN': '研究团队利用钙钛矿与硅叠层技术，成功将转化效率提升至 42%。',
+                    'en': 'Perovskite-silicon tandem panels reach 42% light conversion benchmark.'
+                },
+                content: {
+                    'zh-TW': '科學家今日宣布在太陽能技術領域取得歷史性突破。國際聯合研究團隊研發出新型量子點太陽能電池，在標準實驗室測試中展示出高達 42% 的能量轉換效率。\n\n傳統單晶矽電池的理論極限通常在 29% 左右。這項新突破預計將大幅降低全球綠能開採成本，並加速太陽能成為全球主要電網基礎設施。\n\n「這代表著清潔能源發展的轉折點，」首席科學家埃琳娜·羅斯托娃博士表示。商業試產計畫預計將於明年第一季正式啟動。',
+                    'zh-CN': '科学家今日宣布在太阳能技术领域取得历史性突破。国际联合研究团队研发出新型量子点太阳能电池，在标准实验室测试中展示出高达 42% 的能量转换效率。\n\n传统单晶硅电池的理论极限通常在 29% 左右。这项新突破预计将大幅降低全球绿能开采成本，并加速太阳能成为全球主要电网基础设施。\n\n“这代表着清洁能源发展的转折点，”首席科学家埃琳娜·罗斯托娃博士表示。商业试产计划预计将于明年第一季度正式启动。',
+                    'en': 'In what energy scientists are calling a historic leap forward, an international coalition has demonstrated a scalable quantum solar cell exceeding 42% energy conversion efficiency.\n\nThe previous single-junction limit hovered near 29%. By utilizing advanced perovskite-silicon tandem layers engineered at the nanometer scale, the new panels capture lost spectrum bands.\n\n"This transition marks the threshold where solar power moves from a supplementary source to our global baseline," remarked lead scientist Dr. Elena Rostova.'
+                },
+                tags: ['Renewable Energy', 'Science', 'Tech Innovation'],
+                comments: [
+                    { id: 'c1', author: 'Alex Wong', text: 'This will change the electric vehicle sector completely!', date: '2026-10-05', likes: 12, flags: 0 }
+                ]
+            },
+            {
+                id: 'art-102',
+                category: 'Politics',
+                author: 'Marcus Vance',
+                date: '2026-10-04',
+                image: 'https://images.unsplash.com/photo-1540910419892-4a36d2c3266c?auto=format&fit=crop&w=1000&q=80',
+                status: 'Published',
+                views: 1250,
+                likes: 89,
+                featured: false,
+                title: {
+                    'zh-TW': '全球人工智慧峰會閉幕：45國簽署具有法律約束力的 AI 安全倡議',
+                    'zh-CN': '全球人工智能峰会闭幕：45国签署具有法律约束力的 AI 安全倡议',
+                    'en': 'Global AI Safety Summit Concludes with 45-Nation Protocol Pact'
+                },
+                subtitle: {
+                    'zh-TW': '日內瓦公約建立跨國監督機構，針對前沿模型設定強制審核機制。',
+                    'zh-CN': '日内瓦公约建立跨国监督机构，针对前沿模型设定强制审核机制。',
+                    'en': 'Geneva accord mandates audit standards for frontier neural models.'
+                },
+                content: {
+                    'zh-TW': '經過在日內瓦為期七天的高強度談判，各國代表今日正式達成《通用人工智慧安全監管協定》。\n\n該條約要求所有算力超過特定門檻的系統在公開部署前必須接受第三方稽核，並創立了跨國快速應變聯絡網絡。\n\n業界領袖對此表達謹慎樂觀態度，而隱私權團體則呼籲應更進一步保障數據來源透明度。',
+                    'zh-CN': '经过在日内瓦为期七天的高强度谈判，各国代表今日正式达成《通用人工智能安全监管协定》。\n\n该条约要求所有算力超过特定门槛的系统公开部署前必须接受第三方审计，并创立了跨国快速应变联络网络。\n\n行业领袖对此表达谨慎乐观态度，而隐私权团体则呼吁应更进一步保障数据来源透明度。',
+                    'en': 'After seven days of negotiations in Geneva, international delegates agreed upon a binding framework for frontier AI deployments.\n\nThe pact establishes mandatory audit protocols for frontier models exceeding specific compute thresholds and establishes a rapid-response agency tasked with monitoring cross-border security.'
+                },
+                tags: ['AI Policy', 'Geneva', 'Global Governance'],
+                comments: []
+            },
+            {
+                id: 'art-103',
+                category: 'Business',
+                author: 'Sophia Chen',
+                date: '2026-10-03',
+                image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1000&q=80',
+                status: 'Published',
+                views: 940,
+                likes: 45,
+                featured: false,
+                title: {
+                    'zh-TW': '全球主要央行釋放降息訊號 資本市場迎來強勁反彈',
+                    'zh-CN': '全球主要央行释放降息信号 资本市场迎来强劲反弹',
+                    'en': 'Central Banks Signal Monetary Easing as Inflation Normalizes Globally'
+                },
+                subtitle: {
+                    'zh-TW': '供應鏈完全恢復且通膨率放緩，股市基準指數創下年度新高。',
+                    'zh-CN': '供应链完全恢复且通胀率放缓，股市基准指数创下年度新高。',
+                    'en': 'Equity benchmarks reach yearly high as inflation settles near 2% target.'
+                },
+                content: {
+                    'zh-TW': '全球主要金融市場上週五大幅上揚，主因多國央行發表協調一致的貨幣政策聲明，預示著貨幣緊縮週期的結束。\n\n隨著全球物流供應鏈重回正軌，核心通膨指標已連續三季維持在目標區間內。分析師預測資本將重新湧入科技研發與綠色基礎建設。',
+                    'zh-CN': '全球主要金融市场上周五大幅上扬，主因多国央行发表协调一致的货币政策声明，预示着货币紧缩周期的结束。\n\n随着全球物流供应链重回正轨，核心通胀指标已连续三个季度维持在目标区间内。分析师预测资本将重新涌入科技研发与绿色基础设施。',
+                    'en': 'Global financial markets surged following coordinated policy updates signaling a synchronized turn toward monetary expansion.\n\nWith supply chains normalized and inflation metrics stabilized, capital expenditures in infrastructure and tech innovation are expected to peak.'
+                },
+                tags: ['Finance', 'Markets', 'Economy'],
+                comments: []
+            }
+        ];
+
+        // --- GLOBAL STATE ---
+        let currentLang = localStorage.getItem('apex_lang') || 'zh-TW';
+        let articles = [];
+        let likedArticles = JSON.parse(localStorage.getItem('apex_liked_articles') || '[]');
+        let activeCategory = 'All';
+        let searchQuery = '';
+        let isAdminLoggedIn = false;
+        let activeReaderArticleId = null;
+        let readerFontSizeStep = 0; // -1, 0, +1, +2
+        let isFocusMode = false;
+        let isCommentsVisible = true;
+
+        // --- INITIALIZATION ---
+        window.onload = function() {
+            document.getElementById('lang-select').value = currentLang;
+
+            if (localStorage.getItem('apex_theme') === 'dark' || (!('apex_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+
+            document.getElementById('theme-toggle-btn').onclick = function() {
+                document.documentElement.classList.toggle('dark');
+                localStorage.setItem('apex_theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+            };
+
+            if (sessionStorage.getItem('apex_admin_auth') === 'true') {
+                isAdminLoggedIn = true;
+            }
+
+            loadArticlesData();
+            updateLanguageUI();
+            renderCategoryNav();
+            renderPublicPortal();
+            updateAdminNavUI();
+        };
+
+        // --- LANGUAGE SWITCHER ENGINE ---
+        function changeLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('apex_lang', lang);
+            document.documentElement.lang = lang;
+            
+            updateLanguageUI();
+            renderCategoryNav();
+            renderPublicPortal();
+            if (isAdminLoggedIn) renderAdminDashboard();
+            if (activeReaderArticleId) renderReaderModalContent(activeReaderArticleId);
+        }
+
+        function t(key) {
+            return (I18N[currentLang] && I18N[currentLang][key]) ? I18N[currentLang][key] : (I18N['en'][key] || key);
+        }
+
+        function updateLanguageUI() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                el.textContent = t(key);
+            });
+
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                el.placeholder = t(key);
+            });
+
+            const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const langCode = currentLang === 'zh-TW' ? 'zh-TW' : (currentLang === 'zh-CN' ? 'zh-CN' : 'en-US');
+            document.getElementById('current-date-display').innerHTML = 
+                `<i class="far fa-calendar-alt mr-1"></i> ${new Date().toLocaleDateString(langCode, dateOptions)}`;
+        }
+
+        // --- LOCAL STORAGE DATA ENGINE ---
+        function loadArticlesData() {
+            const stored = localStorage.getItem('apex_i18n_articles_db_v2');
+            if (stored) {
+                try {
+                    articles = JSON.parse(stored);
+                } catch(e) {
+                    articles = [...INITIAL_ARTICLES];
+                }
+            } else {
+                articles = [...INITIAL_ARTICLES];
+                saveArticlesData();
+            }
+        }
+
+        function saveArticlesData() {
+            localStorage.setItem('apex_i18n_articles_db_v2', JSON.stringify(articles));
+        }
+
+        function resetDataToDemo() {
+            if (confirm('Reset to default sample articles? Custom edits will be replaced.')) {
+                articles = [...INITIAL_ARTICLES];
+                saveArticlesData();
+                renderPublicPortal();
+                if (isAdminLoggedIn) renderAdminDashboard();
+                showToast(t('reset_demo_data'), 'info');
+            }
+        }
+
+        function getLangText(field) {
+            if (!field) return '';
+            if (typeof field === 'string') return field;
+            return field[currentLang] || field['zh-TW'] || field['en'] || Object.values(field)[0] || '';
+        }
+
+        // --- CATEGORIES & FILTERING ---
+        function renderCategoryNav() {
+            const nav = document.getElementById('category-nav-list');
+            const categories = ['All', 'Politics', 'Technology', 'World', 'Business', 'Culture', 'Opinion'];
+
+            nav.innerHTML = categories.map(catKey => {
+                const isActive = activeCategory === catKey;
+                const label = CATEGORY_MAP[catKey] ? (CATEGORY_MAP[catKey][currentLang] || CATEGORY_MAP[catKey]['en']) : catKey;
+                return `
+                    <li>
+                        <button onclick="filterCategory('${catKey}')" 
+                            class="${isActive 
+                                ? 'text-brand-accent border-b-2 border-brand-accent font-bold pb-1.5' 
+                                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white pb-1.5 transition'}">
+                            ${label}
+                        </button>
+                    </li>
+                `;
+            }).join('');
+        }
+
+        function filterCategory(catKey) {
+            activeCategory = catKey;
+            renderCategoryNav();
+            updateFilterStatusBar();
+            renderPublicPortal();
+        }
+
+        function handleSearch(val) {
+            searchQuery = val.trim().toLowerCase();
+            updateFilterStatusBar();
+            renderPublicPortal();
+        }
+
+        function clearFilter() {
+            activeCategory = 'All';
+            searchQuery = '';
+            document.getElementById('search-input').value = '';
+            renderCategoryNav();
+            updateFilterStatusBar();
+            renderPublicPortal();
+        }
+
+        function updateFilterStatusBar() {
+            const bar = document.getElementById('filter-status-bar');
+            const label = document.getElementById('filter-label');
+            
+            let parts = [];
+            if (activeCategory !== 'All') {
+                const catLabel = CATEGORY_MAP[activeCategory] ? CATEGORY_MAP[activeCategory][currentLang] : activeCategory;
+                parts.push(`${t('tbl_category')}: ${catLabel}`);
+            }
+            if (searchQuery) parts.push(`"${searchQuery}"`);
+
+            if (parts.length > 0) {
+                label.textContent = parts.join(' & ');
+                bar.classList.remove('hidden');
+            } else {
+                bar.classList.add('hidden');
+            }
+        }
+
+        // --- PUBLIC PORTAL RENDERER ---
+        function renderPublicPortal() {
+            let published = articles.filter(a => a.status === 'Published');
+
+            if (activeCategory !== 'All') {
+                published = published.filter(a => a.category === activeCategory);
+            }
+
+            if (searchQuery) {
+                published = published.filter(a => {
+                    const title = getLangText(a.title).toLowerCase();
+                    const sub = getLangText(a.subtitle).toLowerCase();
+                    const content = getLangText(a.content).toLowerCase();
+                    const author = a.author.toLowerCase();
+                    return title.includes(searchQuery) || sub.includes(searchQuery) || content.includes(searchQuery) || author.includes(searchQuery);
+                });
+            }
+
+            document.getElementById('article-count-badge').textContent = published.length;
+
+            const heroSection = document.getElementById('hero-section');
+            const gridContainer = document.getElementById('news-grid');
+            const noArticlesView = document.getElementById('no-articles-view');
+
+            renderBreakingTicker(published);
+
+            if (published.length === 0) {
+                heroSection.innerHTML = '';
+                heroSection.classList.add('hidden');
+                gridContainer.innerHTML = '';
+                noArticlesView.classList.remove('hidden');
+            } else {
+                noArticlesView.classList.add('hidden');
+                heroSection.classList.remove('hidden');
+
+                const heroItem = published.find(a => a.featured) || published[0];
+                const regularArticles = published.filter(a => a.id !== heroItem.id);
+
+                // Hero Card
+                heroSection.innerHTML = `
+                    <div onclick="openReaderModal('${heroItem.id}')" class="group cursor-pointer bg-white dark:bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-xl transition duration-300 grid grid-cols-1 lg:grid-cols-12">
+                        <div class="lg:col-span-7 relative overflow-hidden min-h-[280px] sm:min-h-[380px]">
+                            <img src="${heroItem.image}" alt="Lead News" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                            <span class="absolute top-4 left-4 bg-brand-accent text-white text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow">
+                                ${t('breaking_news')}
+                            </span>
+                        </div>
+                        <div class="lg:col-span-5 p-6 sm:p-8 flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center gap-2 text-xs font-semibold text-brand-600 dark:text-brand-400 mb-2">
+                                    <span>${CATEGORY_MAP[heroItem.category] ? CATEGORY_MAP[heroItem.category][currentLang] : heroItem.category}</span>
+                                    <span>•</span>
+                                    <span>${heroItem.date}</span>
+                                </div>
+                                <h2 class="font-heading text-2xl sm:text-3xl font-bold leading-tight text-zinc-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition mb-3">
+                                    ${getLangText(heroItem.title)}
+                                </h2>
+                                <p class="text-zinc-600 dark:text-zinc-300 text-sm font-serif line-clamp-3 leading-relaxed mb-4">
+                                    ${getLangText(heroItem.subtitle) || getLangText(heroItem.content)}
+                                </p>
+                            </div>
+                            <div class="pt-4 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-xs text-zinc-500">
+                                <span class="font-medium text-zinc-800 dark:text-zinc-200"><i class="far fa-user mr-1"></i>${heroItem.author}</span>
+                                <span class="text-brand-600 dark:text-brand-400 font-semibold flex items-center gap-1 group-hover:translate-x-1 transition">
+                                    Read Story <i class="fas fa-arrow-right text-[10px]"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // News Grid Cards
+                gridContainer.innerHTML = regularArticles.map(art => `
+                    <article onclick="openReaderModal('${art.id}')" class="group cursor-pointer bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-md transition flex flex-col justify-between">
+                        <div>
+                            <div class="relative h-48 overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+                                <img src="${art.image}" alt="Cover" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" onerror="this.src='https://images.unsplash.com/photo-1585829365295-ab7cd400c167?auto=format&fit=crop&w=800&q=80'">
+                                <span class="absolute top-3 left-3 bg-white/90 dark:bg-zinc-900/90 text-zinc-800 dark:text-zinc-200 text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md backdrop-blur">
+                                    ${CATEGORY_MAP[art.category] ? CATEGORY_MAP[art.category][currentLang] : art.category}
+                                </span>
+                            </div>
+                            <div class="p-5">
+                                <div class="text-[11px] text-zinc-400 mb-1.5">${art.date}</div>
+                                <h3 class="font-heading font-bold text-lg leading-snug text-zinc-900 dark:text-zinc-100 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition line-clamp-2 mb-2">
+                                    ${getLangText(art.title)}
+                                </h3>
+                                <p class="text-xs text-zinc-600 dark:text-zinc-400 font-serif line-clamp-2 leading-relaxed">
+                                    ${getLangText(art.subtitle) || getLangText(art.content)}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="px-5 pb-4 pt-2 flex items-center justify-between text-xs border-t border-zinc-100 dark:border-zinc-800/60">
+                            <span class="text-zinc-500 font-medium">${art.author}</span>
+                            <div class="flex items-center gap-3 text-zinc-400 text-[11px]">
+                                <span><i class="far fa-heart mr-1 text-rose-500"></i>${art.likes || 0}</span>
+                                <span><i class="far fa-eye mr-1"></i>${art.views || 0}</span>
+                            </div>
+                        </div>
+                    </article>
+                `).join('');
+            }
+
+            renderTrendingSidebar();
+        }
+
+        function renderBreakingTicker(published) {
+            const tickerText = document.getElementById('breaking-ticker-text');
+            if (published.length === 0) {
+                tickerText.textContent = "APEX Global News Wire - Independent Journalism";
+            } else {
+                tickerText.innerHTML = published.slice(0, 5).map(a => 
+                    `<span class="mr-10 cursor-pointer hover:underline" onclick="openReaderModal('${a.id}')">• ${getLangText(a.title)}</span>`
+                ).join('');
+            }
+        }
+
+        function renderTrendingSidebar() {
+            const container = document.getElementById('trending-list');
+            const topViews = [...articles]
+                .filter(a => a.status === 'Published')
+                .sort((a, b) => (b.views || 0) - (a.views || 0))
+                .slice(0, 4);
+
+            container.innerHTML = topViews.map((art, idx) => `
+                <div onclick="openReaderModal('${art.id}')" class="group cursor-pointer flex gap-3 items-start border-b border-zinc-100 dark:border-zinc-800/60 pb-3 last:border-none">
+                    <span class="font-heading font-black text-2xl text-zinc-300 dark:text-zinc-700 group-hover:text-brand-accent transition w-6">0${idx+1}</span>
+                    <div class="flex-1">
+                        <span class="text-[10px] font-bold uppercase text-brand-600 dark:text-brand-400">
+                            ${CATEGORY_MAP[art.category] ? CATEGORY_MAP[art.category][currentLang] : art.category}
+                        </span>
+                        <h4 class="font-medium text-xs text-zinc-800 dark:text-zinc-200 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition line-clamp-2 leading-snug">
+                            ${getLangText(art.title)}
+                        </h4>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // --- PUBLIC NEWSLETTER HANDLER ---
+        function handleNewsletterSubmit(e) {
+            e.preventDefault();
+            const input = e.target.querySelector('input[type="email"]');
+            if (input && input.value) {
+                showToast(t('subscribed_success'), 'success');
+                input.value = '';
+            }
+        }
+
+        // --- ARTICLE READER & INTERACTIVE TOOLS ---
+        function openReaderModal(id) {
+            const art = articles.find(a => a.id === id);
+            if (!art) return;
+
+            activeReaderArticleId = id;
+            art.views = (art.views || 0) + 1;
+            saveArticlesData();
+
+            // Reset reader adjustments
+            readerFontSizeStep = 0;
+            isFocusMode = false;
+            isCommentsVisible = true;
+            document.getElementById('share-dropdown').classList.add('hidden');
+            applyReaderStyling();
+
+            renderReaderModalContent(id);
+            openModal('reader-modal');
+        }
+
+        function renderReaderModalContent(id) {
+            const art = articles.find(a => a.id === id);
+            if (!art) return;
+
+            document.getElementById('reader-category').textContent = CATEGORY_MAP[art.category] ? CATEGORY_MAP[art.category][currentLang] : art.category;
+            document.getElementById('reader-title').textContent = getLangText(art.title);
+            document.getElementById('reader-subtitle').textContent = getLangText(art.subtitle) || '';
+            document.getElementById('reader-author').textContent = art.author;
+            document.getElementById('reader-author-avatar').textContent = art.author.charAt(0).toUpperCase();
+            document.getElementById('reader-date').textContent = art.date;
+            document.getElementById('reader-views').textContent = art.views;
+            document.getElementById('reader-like-count').textContent = art.likes || 0;
+            document.getElementById('reader-image').src = art.image;
+
+            // Like Icon status
+            const isLiked = likedArticles.includes(id);
+            const likeIcon = document.getElementById('reader-like-icon');
+            likeIcon.className = isLiked ? "fas fa-heart text-rose-500" : "far fa-heart";
+
+            // Paragraphs Content
+            const textContent = getLangText(art.content);
+            const paragraphs = textContent.split('\n\n');
+            document.getElementById('reader-content').innerHTML = paragraphs.map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
+
+            // Read time
+            const words = textContent.length;
+            const readTimeMinutes = Math.max(1, Math.ceil(words / 300));
+            document.getElementById('reader-readtime').textContent = `${readTimeMinutes} min read`;
+
+            // Tags
+            const tagsContainer = document.getElementById('reader-tags');
+            if (art.tags && art.tags.length > 0) {
+                tagsContainer.innerHTML = art.tags.map(t => `<span class="text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 px-2.5 py-1 rounded-md font-medium">#${t.trim()}</span>`).join('');
+            } else {
+                tagsContainer.innerHTML = '';
+            }
+
+            renderCommentsList(art);
+        }
+
+        // --- UPVOTE / LIKE ARTICLE ---
+        function toggleArticleLike() {
+            if (!activeReaderArticleId) return;
+            const art = articles.find(a => a.id === activeReaderArticleId);
+            if (!art) return;
+
+            const idx = likedArticles.indexOf(activeReaderArticleId);
+            if (idx > -1) {
+                likedArticles.splice(idx, 1);
+                art.likes = Math.max(0, (art.likes || 0) - 1);
+            } else {
+                likedArticles.push(activeReaderArticleId);
+                art.likes = (art.likes || 0) + 1;
+            }
+
+            localStorage.setItem('apex_liked_articles', JSON.stringify(likedArticles));
+            saveArticlesData();
+
+            document.getElementById('reader-like-count').textContent = art.likes;
+            document.getElementById('reader-like-icon').className = likedArticles.includes(activeReaderArticleId) ? "fas fa-heart text-rose-500" : "far fa-heart";
+            renderPublicPortal();
+        }
+
+        // --- FONT SIZE & FOCUS MODE ---
+        function adjustFontSize(delta) {
+            if (delta === 0) {
+                readerFontSizeStep = 0;
+            } else {
+                readerFontSizeStep = Math.max(-1, Math.min(3, readerFontSizeStep + delta));
+            }
+            applyReaderStyling();
+        }
+
+        function toggleFocusMode() {
+            isFocusMode = !isFocusMode;
+            applyReaderStyling();
+        }
+
+        function applyReaderStyling() {
+            const contentEl = document.getElementById('reader-content');
+            const imgWrapper = document.getElementById('reader-image-wrapper');
+            const card = document.getElementById('reader-modal-card');
+            const focusBtn = document.getElementById('focus-mode-btn');
+
+            // Font Sizes
+            const sizes = ['text-sm', 'text-base', 'text-lg', 'text-xl', 'text-2xl'];
+            contentEl.className = `prose dark:prose-invert font-serif leading-relaxed text-zinc-800 dark:text-zinc-200 space-y-4 transition-all duration-200 ${sizes[readerFontSizeStep + 1]}`;
+
+            // Focus Mode styling
+            if (isFocusMode) {
+                card.classList.add('max-w-4xl', 'bg-stone-50', 'dark:bg-zinc-950');
+                imgWrapper.classList.add('hidden');
+                focusBtn.classList.add('bg-brand-50', 'text-brand-600', 'dark:bg-brand-900/40');
+                focusBtn.querySelector('span').textContent = t('normal_mode');
+            } else {
+                card.classList.remove('max-w-4xl', 'bg-stone-50', 'dark:bg-zinc-950');
+                card.classList.add('max-w-3xl');
+                imgWrapper.classList.remove('hidden');
+                focusBtn.classList.remove('bg-brand-50', 'text-brand-600', 'dark:bg-brand-900/40');
+                focusBtn.querySelector('span').textContent = t('focus_mode');
+            }
+        }
+
+        // --- SHARING & QR CODE ---
+        function toggleShareDropdown() {
+            const drop = document.getElementById('share-dropdown');
+            drop.classList.toggle('hidden');
+        }
+
+        function shareSocial(platform) {
+            if (!activeReaderArticleId) return;
+            const art = articles.find(a => a.id === activeReaderArticleId);
+            const title = encodeURIComponent(getLangText(art.title));
+            const url = encodeURIComponent(window.location.href);
+
+            let targetUrl = '';
+            switch(platform) {
+                case 'twitter': targetUrl = `https://twitter.com/intent/tweet?text=${title}&url=${url}`; break;
+                case 'facebook': targetUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`; break;
+                case 'whatsapp': targetUrl = `https://api.whatsapp.com/send?text=${title}%20${url}`; break;
+                case 'telegram': targetUrl = `https://t.me/share/url?url=${url}&text=${title}`; break;
+                case 'line': targetUrl = `https://social-plugins.line.me/lineit/share?url=${url}`; break;
+            }
+            if (targetUrl) window.open(targetUrl, '_blank', 'width=600,height=400');
+        }
+
+        function openQRCodeModal() {
+            openModal('qrcode-modal');
+        }
+
+        function copyArticleLink() {
+            document.execCommand('copy');
+            showToast(t('link_copied'), 'info');
+        }
+
+        // --- READER COMMENTS SYSTEM ---
+        function toggleCommentsVisibility() {
+            isCommentsVisible = !isCommentsVisible;
+            const wrapper = document.getElementById('comments-wrapper');
+            const btn = document.getElementById('toggle-comments-btn');
+
+            if (isCommentsVisible) {
+                wrapper.classList.remove('hidden');
+                btn.innerHTML = `<i class="fas fa-chevron-up mr-1"></i> ${t('collapse_comments')}`;
+            } else {
+                wrapper.classList.add('hidden');
+                btn.innerHTML = `<i class="fas fa-chevron-down mr-1"></i> ${t('expand_comments')}`;
+            }
+        }
+
+        function postComment(e) {
+            e.preventDefault();
+            if (!activeReaderArticleId) return;
+
+            const art = articles.find(a => a.id === activeReaderArticleId);
+            if (!art) return;
+
+            const nameInput = document.getElementById('comment-author');
+            const textInput = document.getElementById('comment-text');
+
+            if (!art.comments) art.comments = [];
+            art.comments.unshift({
+                id: 'c-' + Date.now(),
+                author: nameInput.value.trim(),
+                text: textInput.value.trim(),
+                date: new Date().toISOString().split('T')[0],
+                likes: 0,
+                flags: 0
+            });
+
+            saveArticlesData();
+            textInput.value = '';
+            renderCommentsList(art);
+            if (isAdminLoggedIn) renderAdminComments();
+            showToast(t('comment_success'), 'success');
+        }
+
+        function upvoteComment(commentId) {
+            if (!activeReaderArticleId) return;
+            const art = articles.find(a => a.id === activeReaderArticleId);
+            if (!art || !art.comments) return;
+
+            const c = art.comments.find(x => x.id === commentId);
+            if (c) {
+                c.likes = (c.likes || 0) + 1;
+                saveArticlesData();
+                renderCommentsList(art);
+            }
+        }
+
+        function reportComment(commentId) {
+            if (!activeReaderArticleId) return;
+            const art = articles.find(a => a.id === activeReaderArticleId);
+            if (!art || !art.comments) return;
+
+            const c = art.comments.find(x => x.id === commentId);
+            if (c) {
+                c.flags = (c.flags || 0) + 1;
+                saveArticlesData();
+                showToast(t('comment_reported'), 'info');
+                if (isAdminLoggedIn) renderAdminComments();
+            }
+        }
+
+        function renderCommentsList(art) {
+            const container = document.getElementById('comments-list');
+            const countEl = document.getElementById('comments-count');
+            const comments = art.comments || [];
+
+            countEl.textContent = comments.length;
+
+            if (comments.length === 0) {
+                container.innerHTML = `<p class="text-zinc-400 italic">No discussions yet. Be the first to share your view!</p>`;
+            } else {
+                container.innerHTML = comments.map(c => `
+                    <div class="bg-zinc-50 dark:bg-zinc-800/50 p-3.5 rounded-xl border border-zinc-100 dark:border-zinc-800 space-y-1.5">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-zinc-800 dark:text-zinc-200">${c.author}</span>
+                            <span class="text-[10px] text-zinc-400">${c.date}</span>
+                        </div>
+                        <p class="text-zinc-600 dark:text-zinc-300 leading-relaxed">${c.text}</p>
+                        <div class="flex items-center gap-4 pt-1 text-[11px] text-zinc-400">
+                            <button onclick="upvoteComment('${c.id}')" class="hover:text-brand-500 flex items-center gap-1 font-medium">
+                                <i class="far fa-thumbs-up"></i> ${t('upvote_comment')} (${c.likes || 0})
+                            </button>
+                            <button onclick="reportComment('${c.id}')" class="hover:text-rose-500 flex items-center gap-1">
+                                <i class="far fa-flag"></i> ${t('report_comment')}
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // --- AUTHENTICATION & ADMIN ENGINE ---
+        function openAdminModalOrDashboard() {
+            if (isAdminLoggedIn) {
+                switchToAdminDashboard();
+            } else {
+                openModal('login-modal');
+            }
+        }
+
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('login-username').value;
+            const pass = document.getElementById('login-password').value;
+
+            if (user === 'admin' && pass === 'admin123') {
+                isAdminLoggedIn = true;
+                sessionStorage.setItem('apex_admin_auth', 'true');
+                closeModal('login-modal');
+                updateAdminNavUI();
+                switchToAdminDashboard();
+                showToast('Welcome Admin!', 'success');
+            } else {
+                showToast('Invalid credentials. (admin / admin123)', 'error');
+            }
+        }
+
+        function logoutAdmin() {
+            isAdminLoggedIn = false;
+            sessionStorage.removeItem('apex_admin_auth');
+            updateAdminNavUI();
+            switchToReaderMode();
+            showToast('Logged out', 'info');
+        }
+
+        function updateAdminNavUI() {
+            const btnText = document.getElementById('nav-admin-btn-text');
+            btnText.textContent = isAdminLoggedIn ? (currentLang === 'zh-TW' ? '管理後台' : (currentLang === 'zh-CN' ? '管理后台' : 'Admin Dashboard')) : t('admin_login');
+        }
+
+        function switchToAdminDashboard() {
+            document.getElementById('public-portal').classList.add('hidden');
+            document.getElementById('admin-dashboard').classList.remove('hidden');
+            renderAdminDashboard();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function switchToReaderMode() {
+            document.getElementById('admin-dashboard').classList.add('hidden');
+            document.getElementById('public-portal').classList.remove('hidden');
+            renderPublicPortal();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Admin Dashboard Render Tables
+        function renderAdminDashboard() {
+            const total = articles.length;
+            const published = articles.filter(a => a.status === 'Published').length;
+            const drafts = articles.filter(a => a.status === 'Draft').length;
+            const totalViews = articles.reduce((acc, curr) => acc + (curr.views || 0), 0);
+
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-published').textContent = published;
+            document.getElementById('stat-drafts').textContent = drafts;
+            document.getElementById('stat-views').textContent = totalViews.toLocaleString();
+
+            const tbody = document.getElementById('admin-table-body');
+            tbody.innerHTML = articles.map(art => `
+                <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/40 transition">
+                    <td class="px-6 py-4">
+                        <div class="font-bold text-zinc-900 dark:text-zinc-100 max-w-xs truncate" title="${getLangText(art.title)}">${getLangText(art.title)}</div>
+                        <div class="text-[11px] text-zinc-400">ID: ${art.id} ${art.featured ? '<span class="text-amber-500 ml-1 font-bold">[Pinned Hero]</span>' : ''}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="px-2.5 py-1 text-xs rounded-md font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
+                            ${CATEGORY_MAP[art.category] ? CATEGORY_MAP[art.category][currentLang] : art.category}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-xs text-zinc-600 dark:text-zinc-400">${art.author}</td>
+                    <td class="px-6 py-4">
+                        ${art.status === 'Published' 
+                            ? `<span class="px-2.5 py-1 text-xs rounded-full font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400">Published</span>`
+                            : `<span class="px-2.5 py-1 text-xs rounded-full font-bold bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-400">Draft</span>`
+                        }
+                    </td>
+                    <td class="px-6 py-4 text-xs text-zinc-500 whitespace-nowrap">${art.date}</td>
+                    <td class="px-6 py-4 text-right space-x-2 whitespace-nowrap">
+                        <button onclick="openArticleFormModal('${art.id}')" class="text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-950 p-2 rounded-lg transition" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteArticle('${art.id}')" class="text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950 p-2 rounded-lg transition" title="Delete">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            renderAdminComments();
+        }
+
+        function renderAdminComments() {
+            const tbody = document.getElementById('admin-comments-body');
+            let allComments = [];
+
+            articles.forEach(a => {
+                if (a.comments && a.comments.length > 0) {
+                    a.comments.forEach(c => {
+                        allComments.push({ ...c, articleId: a.id, articleTitle: getLangText(a.title) });
+                    });
+                }
+            });
+
+            if (allComments.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-4 text-center text-zinc-400 italic">No reader comments submitted yet.</td></tr>`;
+            } else {
+                tbody.innerHTML = allComments.map(c => `
+                    <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/40">
+                        <td class="px-6 py-3 font-bold text-zinc-800 dark:text-zinc-200">${c.author}</td>
+                        <td class="px-6 py-3 max-w-xs truncate text-zinc-600 dark:text-zinc-300" title="${c.text}">${c.text}</td>
+                        <td class="px-6 py-3 max-w-xs truncate text-zinc-400" title="${c.articleTitle}">${c.articleTitle}</td>
+                        <td class="px-6 py-3">
+                            ${(c.flags || 0) > 0 ? `<span class="px-2 py-0.5 rounded bg-rose-100 text-rose-700 font-bold">${c.flags} Flags</span>` : '<span class="text-zinc-400">0</span>'}
+                        </td>
+                        <td class="px-6 py-3 text-right">
+                            <button onclick="deleteCommentAdmin('${c.articleId}', '${c.id}')" class="text-rose-600 dark:text-rose-400 hover:underline">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        function deleteCommentAdmin(articleId, commentId) {
+            const art = articles.find(a => a.id === articleId);
+            if (art && art.comments) {
+                art.comments = art.comments.filter(c => c.id !== commentId);
+                saveArticlesData();
+                renderAdminComments();
+                if (activeReaderArticleId === articleId) renderCommentsList(art);
+                showToast('Comment deleted by moderator', 'info');
+            }
+        }
+
+        // --- ARTICLE EDITOR FORM ---
+        function openArticleFormModal(editId = null) {
+            const form = document.getElementById('article-form');
+            form.reset();
+
+            if (editId) {
+                const art = articles.find(a => a.id === editId);
+                if (!art) return;
+                document.getElementById('editor-modal-title').textContent = t('editor_title_edit');
+                document.getElementById('edit-article-id').value = art.id;
+                document.getElementById('form-title').value = getLangText(art.title);
+                document.getElementById('form-subtitle').value = getLangText(art.subtitle);
+                document.getElementById('form-category').value = art.category;
+                document.getElementById('form-author').value = art.author;
+                document.getElementById('form-image').value = art.image;
+                document.getElementById('form-content').value = getLangText(art.content);
+                document.getElementById('form-tags').value = art.tags ? art.tags.join(', ') : '';
+                document.getElementById('form-status').value = art.status;
+                document.getElementById('form-featured').value = art.featured ? "true" : "false";
+            } else {
+                document.getElementById('editor-modal-title').textContent = t('editor_title_create');
+                document.getElementById('edit-article-id').value = '';
+                document.getElementById('form-image').value = 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1000&q=80';
+            }
+
+            openModal('editor-modal');
+        }
+
+        function presetSampleImage() {
+            const images = [
+                'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1000&q=80',
+                'https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1000&q=80',
+                'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1000&q=80'
+            ];
+            document.getElementById('form-image').value = images[Math.floor(Math.random() * images.length)];
+        }
+
+        function saveArticle(e) {
+            e.preventDefault();
+
+            const editId = document.getElementById('edit-article-id').value;
+            const titleInput = document.getElementById('form-title').value;
+            const subtitleInput = document.getElementById('form-subtitle').value;
+            const category = document.getElementById('form-category').value;
+            const author = document.getElementById('form-author').value;
+            const image = document.getElementById('form-image').value || 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?auto=format&fit=crop&w=800&q=80';
+            const contentInput = document.getElementById('form-content').value;
+            const tags = document.getElementById('form-tags').value.split(',').map(t => t.trim()).filter(Boolean);
+            const status = document.getElementById('form-status').value;
+            const featured = document.getElementById('form-featured').value === "true";
+
+            if (featured) {
+                articles.forEach(a => a.featured = false);
+            }
+
+            if (editId) {
+                const index = articles.findIndex(a => a.id === editId);
+                if (index !== -1) {
+                    const existing = articles[index];
+                    const updatedTitle = typeof existing.title === 'object' ? { ...existing.title, [currentLang]: titleInput } : titleInput;
+                    const updatedSub = typeof existing.subtitle === 'object' ? { ...existing.subtitle, [currentLang]: subtitleInput } : subtitleInput;
+                    const updatedContent = typeof existing.content === 'object' ? { ...existing.content, [currentLang]: contentInput } : contentInput;
+
+                    articles[index] = {
+                        ...existing,
+                        title: updatedTitle,
+                        subtitle: updatedSub,
+                        content: updatedContent,
+                        category, author, image, tags, status, featured
+                    };
+                    showToast('Article saved!');
+                }
+            } else {
+                const newArticle = {
+                    id: 'art-' + Date.now(),
+                    category,
+                    author,
+                    date: new Date().toISOString().split('T')[0],
+                    image,
+                    status,
+                    featured,
+                    views: 0,
+                    likes: 0,
+                    tags,
+                    title: { 'zh-TW': titleInput, 'zh-CN': titleInput, 'en': titleInput },
+                    subtitle: { 'zh-TW': subtitleInput, 'zh-CN': subtitleInput, 'en': subtitleInput },
+                    content: { 'zh-TW': contentInput, 'zh-CN': contentInput, 'en': contentInput },
+                    comments: []
+                };
+                articles.unshift(newArticle);
+                showToast('Article created successfully!');
+            }
+
+            saveArticlesData();
+            closeModal('editor-modal');
+            renderAdminDashboard();
+            renderPublicPortal();
+        }
+
+        function deleteArticle(id) {
+            if (confirm('Are you sure you want to delete this article?')) {
+                articles = articles.filter(a => a.id !== id);
+                saveArticlesData();
+                renderAdminDashboard();
+                renderPublicPortal();
+                showToast('Article deleted', 'info');
+            }
+        }
+
+        // --- TOAST ALERTS & MODAL UTILS ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl border-l-4 text-xs font-medium bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 border-emerald-500 transform transition-all duration-300 translate-y-2 opacity-0`;
+            toast.innerHTML = `<i class="fas fa-info-circle text-emerald-400"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+            if (id === 'reader-modal') activeReaderArticleId = null;
+        }
+    </script>
+</body>
+</html>
